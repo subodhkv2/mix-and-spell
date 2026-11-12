@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Mix &amp; Spell: Colour Word Puzzle</title>
+<style>
+:root{--bg:#0f172a;--bg2:#1e1b4b;--bg3:#312e81;--card:rgba(255,255,255,.08);--ink:#f8fafc;--muted:#cbd5e1;--primary:#6366f1;--primary2:#8b5cf6;--accent:#f59e0b;--gold:#fbbf24;--good:#10b981;--bad:#ef4444;--warn:#f59e0b}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:linear-gradient(160deg,#0f172a 0%,#1e1b4b 55%,#312e81 100%);background-attachment:fixed;color:var(--ink);font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:16px;font-weight:500;min-height:100%}
+body[data-theme="sunset"]{background:linear-gradient(160deg,#1c0a2e 0%,#7c2d12 100%);--primary:#f97316;--primary2:#ec4899}
+body[data-theme="ocean"]{background:linear-gradient(160deg,#082f49 0%,#0e7490 100%);--primary:#06b6d4;--primary2:#3b82f6}
+body[data-theme="forest"]{background:linear-gradient(160deg,#052e16 0%,#14532d 100%);--primary:#22c55e;--primary2:#14b8a6}
+body{display:flex;justify-content:center}
+#app{width:100%;max-width:560px;min-height:100vh;padding:14px 14px 28px;display:flex;flex-direction:column;gap:12px}
+header{display:flex;justify-content:space-between;align-items:center;gap:8px}
+h1{font-size:32px;font-weight:800;letter-spacing:-.5px;margin:0;line-height:1.2}
+.grad-text{background:linear-gradient(90deg,#818cf8,#c084fc,#fbbf24);-webkit-background-clip:text;background-clip:text;color:transparent}
+h2,h3{font-size:20px;font-weight:700;margin:0}
+h1 small{display:block;font-size:12px;color:var(--muted);font-weight:400}
+.pill{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:8px 12px;font-size:13px;font-weight:700;white-space:nowrap}
+#coinsPill{background:var(--accent);color:#111827;border-color:transparent}
+#streakPill.flame{box-shadow:0 0 12px rgba(245,158,11,.8);border-color:var(--gold)}
+.card{background:var(--card);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.18);border-radius:20px;padding:20px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.hidden{display:none!important}
+button{font:inherit;font-size:16px;font-weight:700;color:var(--ink);background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);border-radius:12px;padding:12px 16px;cursor:pointer;touch-action:manipulation;min-height:52px}
+button:hover{transform:translateY(-2px)}
+button:active{transform:scale(.97)}
+button.primary{background:linear-gradient(90deg,var(--primary),var(--primary2));color:#fff;border-color:transparent;border-radius:999px;font-weight:700}
+button.good{background:#10b981;border-color:#10b981;font-weight:700}
+button:disabled{opacity:.45;cursor:not-allowed}
+.big{font-size:18px;text-align:center}
+.huge{font-size:32px;font-weight:800;letter-spacing:-.5px;text-align:center}
+.muted{color:var(--muted);font-size:13px;line-height:1.5}
+.target{display:flex;align-items:center;gap:14px}
+.swatch{width:72px;height:72px;border-radius:50%;border:4px solid #fff;flex:0 0 auto;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.swatch.pulse{animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+.palette{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}
+.swatch-btn{height:58px;border-radius:14px;border:3px solid transparent;padding:0}
+.swatch-btn.sel{border-color:#fff;outline:3px solid var(--accent)}
+.swatch-btn span{display:block;font-size:10px;line-height:1.15;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8);padding-top:32px}
+.mixrow{display:flex;gap:8px;align-items:center;justify-content:center;margin:12px 0;flex-wrap:wrap}
+.mixslot{width:44px;height:44px;border-radius:50%;border:2px dashed #64748b;display:flex;align-items:center;justify-content:center;font-weight:800}
+.letters{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px 0}
+.letter{width:48px;height:54px;font-size:22px;font-weight:800}
+.wordslots{display:flex;gap:6px;justify-content:center;min-height:52px;flex-wrap:wrap}
+.slot{width:38px;height:48px;border-bottom:3px solid #64748b;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800}
+.hud{display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between}
+.hud .pill{background:#0f172a}
+.bar{height:14px;background:rgba(255,255,255,.14);border-radius:999px;overflow:hidden}
+.bar>i{display:block;height:100%;background:#22c55e;transition:width .25s linear}
+.level-progress{height:8px;margin-top:8px}
+.level-progress>i{background:linear-gradient(90deg,var(--primary),var(--primary2))}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row button{flex:1}
+footer{text-align:center}
+.shake{animation:shake .3s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+#confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:50}
+.confetti-bit{position:absolute;top:-12px;width:10px;height:14px;opacity:.95;animation:cfall 1.2s ease-in forwards}
+@keyframes cfall{to{transform:translateY(105vh) rotate(540deg);opacity:.6}}
+#popups{position:relative;height:0}
+.popup{position:absolute;left:50%;transform:translateX(-50%);font-size:22px;font-weight:800;color:#fde047;text-shadow:0 2px 6px rgba(0,0,0,.7);animation:popfloat .9s ease-out forwards;pointer-events:none;white-space:nowrap;z-index:40}
+@keyframes popfloat{0%{opacity:0;transform:translate(-50%,10px) scale(.8)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,-34px) scale(1.1)}}
+#levelBanner{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%) scale(.9);background:linear-gradient(90deg,var(--accent),var(--accent2));color:#111827;font-size:24px;font-weight:800;padding:14px 22px;border-radius:16px;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.5);animation:bannerpop 1.2s ease-out forwards;pointer-events:none;text-align:center}
+@keyframes bannerpop{0%{opacity:0;transform:translate(-50%,-50%) scale(.7)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
+.tut-step{font-size:44px;text-align:center;margin:8px 0}
+.tut-dots{text-align:center;font-size:18px;letter-spacing:4px}
+.theme-btn.on{outline:3px solid var(--accent)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:10px 0}
+.cal div{background:#0f172a;border-radius:10px;padding:8px 2px;text-align:center;font-size:12px;font-weight:700}
+.cal div.done{background:#16a34a}
+.cal div.today{outline:2px solid var(--accent)}
+.badge{display:inline-block;background:#0f172a;border:1px solid #475569;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:700;margin:2px}
+.badge.earned{background:var(--gold);border-color:var(--gold);color:#111827}
+.pop{animation:pop .35s ease-out}
+@keyframes pop{0%{transform:scale(.7)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+.glow-green{box-shadow:0 0 16px rgba(16,185,129,.9)!important}
+.wrong-tint{box-shadow:inset 0 0 0 2px rgba(239,68,68,.9)}
+@media (max-width:380px){.palette{grid-template-columns:repeat(5,1fr)}.letter{width:40px;height:48px}}
+</style>
+<!-- Playables SDK MUST be the first script. No other external script is loaded. -->
+<script src="https://www.youtube.com/game_api/v1"></script>
+</head>
+<body>
+<div id="confetti"></div>
+<div id="levelBanner" class="hidden"></div>
+<div id="app">
+  <header>
+    <h1 class="grad-text">Mix &amp; Spell<small>Colour Word Puzzle &middot; Ages 13+</small></h1>
+    <span class="pill" id="coinsPill">Coins 0</span>
+  </header>
+
+  <div class="hud" aria-label="Game status">
+    <span class="pill" id="levelPill">Level 1</span>
+    <span class="pill" id="scorePill">Score 0</span>
+    <span class="pill" id="livesPill">Lives 3</span>
+    <span class="pill" id="streakPill">Streak 0</span>
+  </div>
+  <div class="bar" aria-label="Time remaining"><i id="timeBar" style="width:100%"></i></div>
+  <div class="muted" id="timerText" style="text-align:center">60s left</div>
+  <div class="bar level-progress" aria-label="Level progress"><i id="levelBar" style="width:0%"></i></div>
+  <div class="muted" id="levelProgText" style="text-align:center">Level progress: Mix → Spell</div>
+  <div id="popups"></div>
+
+  <!-- MENU -->
+  <section class="card" id="menuScreen">
+    <p class="huge grad-text" style="margin:4px 0">Mix &amp; Spell</p>
+    <p class="big" style="margin:4px 0">🎨 Mix a colour. Spell the word.</p>
+    <p class="muted" style="text-align:center">One tap to play. First reward in 10 seconds.</p>
+    <p class="muted" id="saveLine">Best score: 0 &middot; Best level: 0 &middot; Daily streak: 0 day(s)</p>
+    <p class="muted" id="bestLine">Blitz best: 0 mixes</p>
+    <div class="row">
+      <button class="primary" id="playBtn" type="button">▶ TAP TO PLAY — Classic</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button id="blitzBtn" type="button">⚡ 60-Second Blitz</button>
+      <button id="dailyBtn" type="button">Daily Challenge</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button id="tutorialBtn" type="button">How to play (20 sec)</button>
+      <button id="soundBtn" type="button" aria-pressed="true">Sound: On</button>
+    </div>
+    <hr style="border-color:#475569">
+    <p style="margin:6px 0"><strong>🎯 Today's mission</strong></p>
+    <p class="muted" id="missionLine">Mix 5 greens today — 0/5</p>
+    <p style="margin:6px 0"><strong>🏆 Achievements</strong></p>
+    <p id="achList"></p>
+    <p style="margin:6px 0"><strong>🎁 Daily reward</strong></p>
+    <div class="cal" id="rewardCal"></div>
+    <div class="row"><button id="claimBtn" type="button">Claim today's reward</button></div>
+    <p style="margin:6px 0"><strong>🎨 Themes (coins only — no purchases)</strong></p>
+    <div class="row" id="themeRow"></div>
+  </section>
+
+  <!-- TUTORIAL -->
+  <section class="card hidden" id="tutorialScreen">
+    <p class="huge" id="tutTitle">Step 1 — Mix</p>
+    <div class="tut-step" id="tutEmoji">🎨</div>
+    <p class="big" id="tutText">Tap two colours to mix the target colour. Blue + yellow = green!</p>
+    <p class="tut-dots" id="tutDots">●○○</p>
+    <div class="row">
+      <button class="primary" id="tutNextBtn" type="button">Next</button>
+      <button id="tutSkipBtn" type="button">Skip</button>
+    </div>
+  </section>
+
+  <!-- PLAY (Classic) -->
+  <section class="card hidden" id="playScreen">
+    <div id="phaseMix">
+      <p class="big" style="margin-top:0">Step 1 &mdash; Mix this colour</p>
+      <div class="target">
+        <div class="swatch pulse" id="targetSwatch" aria-label="Target colour"></div>
+        <div><div style="font-weight:800" id="targetLabel">Target colour</div>
+        <div style="font-weight:800" id="targetShape"></div>
+        <div class="muted" id="mixHint">Tap two colours below.</div>
+        <div class="muted" id="practiceHint"></div></div>
+      </div>
+      <div class="mixrow"><span class="mixslot" id="slotA">?</span><span aria-hidden="true">+</span><span class="mixslot" id="slotB">?</span><span aria-hidden="true">=</span><span class="mixslot" id="slotResult">?</span></div>
+      <div class="palette" id="palette" role="group" aria-label="Colour palette"></div>
+      <p class="muted" id="mixMsg" style="text-align:center;min-height:20px"></p>
+      <div class="row"><button id="clearMixBtn" type="button">Clear</button><button id="pauseBtn" type="button">Pause</button></div>
+    </div>
+    <div id="phaseSpell" class="hidden">
+      <p class="big" style="margin-top:0">Step 2 &mdash; Spell the word</p>
+      <p class="muted" style="text-align:center" id="spellHint">Tap the letters in order.</p>
+      <div class="wordslots" id="wordSlots"></div>
+      <div class="letters" id="letters"></div>
+      <p class="muted" id="spellMsg" style="text-align:center;min-height:20px"></p>
+      <div class="row">
+        <button id="hintBtn" type="button">Hint (10 coins)</button>
+        <button id="shuffleBtn" type="button">Shuffle letters</button>
+        <button id="undoBtn" type="button">Undo letter</button>
+        <button id="pauseBtn2" type="button">Pause</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- BLITZ -->
+  <section class="card hidden" id="blitzScreen">
+    <p class="huge" style="margin-top:0">⚡ 60-Second Blitz</p>
+    <p class="muted" style="text-align:center">Mix as many colours as you can in 60 seconds. Correct mixes build your combo!</p>
+    <p class="big" id="blitzScore">Mixes 0 &middot; Combo x1 &middot; Score 0</p>
+    <div class="target">
+      <div class="swatch pulse" id="blitzTargetSwatch" aria-label="Target colour"></div>
+      <div><div style="font-weight:800" id="blitzTargetLabel">Target colour</div>
+      <div style="font-weight:800" id="blitzTargetShape"></div>
+      <div class="muted">Tap two colours to mix it — one tap per colour.</div></div>
+    </div>
+    <div class="mixrow"><span class="mixslot" id="blitzSlotA">?</span><span aria-hidden="true">+</span><span class="mixslot" id="blitzSlotB">?</span><span aria-hidden="true">=</span><span class="mixslot" id="blitzSlotResult">?</span></div>
+    <div class="palette" id="blitzPalette" role="group" aria-label="Colour palette"></div>
+    <p class="muted" id="blitzMsg" style="text-align:center;min-height:20px"></p>
+    <div class="row"><button id="blitzPauseBtn" type="button">Pause</button><button id="blitzMenuBtn" type="button">Main menu</button></div>
+  </section>
+
+  <!-- BLITZ OVER -->
+  <section class="card hidden" id="blitzOverScreen">
+    <p class="huge">⚡ Blitz over!</p>
+    <p class="muted" style="text-align:center" id="blitzOverDetail"></p>
+    <div class="row"><button class="primary" id="blitzAgainBtn" type="button">Play Blitz again</button><button id="blitzOverMenuBtn" type="button">Main menu</button></div>
+  </section>
+
+  <!-- PAUSED -->
+  <section class="card hidden" id="pauseScreen">
+    <p class="big">Paused</p>
+    <p class="muted" style="text-align:center">The timer is stopped.</p>
+    <div class="row"><button class="primary" id="resumeBtn" type="button">Resume</button><button id="menuBtn" type="button">Main menu</button></div>
+  </section>
+
+  <!-- LEVEL COMPLETE -->
+  <section class="card hidden" id="levelScreen">
+    <p class="big" id="levelTitle">Level complete!</p>
+    <p class="muted" style="text-align:center" id="levelDetail"></p>
+    <p class="muted" style="text-align:center" id="adNote"></p>
+    <div class="row"><button class="primary" id="nextBtn" type="button">Next level</button></div>
+  </section>
+
+  <!-- GAME OVER -->
+  <section class="card hidden" id="overScreen">
+    <p class="big">Game over</p>
+    <p class="muted" style="text-align:center" id="overDetail"></p>
+    <div class="row">
+      <button class="good" id="continueBtn" type="button">Continue: +1 life (ad)</button>
+      <button id="againBtn" type="button">Play again</button>
+    </div>
+    <div class="row" style="margin-top:8px"><button id="overMenuBtn" type="button">Main menu</button></div>
+    <p class="muted" style="text-align:center">The Continue button asks the platform for a rewarded ad. In this file the ad call is stubbed when no platform is present, so no real ad plays here.</p>
+  </section>
+
+  <footer class="muted">Original game. No login, no purchases, no external links. Progress is saved only through the YouTube Playables SDK when present.</footer>
+</div>
+
+<script>
+'use strict';
+/* ============================================================
+   Mix & Spell v2 — pure logic first (testable in Node via vm).
+   No browser storage, no code evaluation, no external calls.
+   The only external URL in the whole document is the SDK
+   script tag in <head>.
+   ============================================================ */
+var COLOURS = {
+  red:{hex:'#EF4444',label:'Red'}, blue:{hex:'#3B82F6',label:'Blue'},
+  yellow:{hex:'#FACC15',label:'Yellow'}, white:{hex:'#F8FAFC',label:'White'},
+  black:{hex:'#1F2937',label:'Black'}, purple:{hex:'#A855F7',label:'Purple'},
+  green:{hex:'#22C55E',label:'Green'}, orange:{hex:'#F97316',label:'Orange'},
+  pink:{hex:'#EC4899',label:'Pink'}, sky:{hex:'#38BDF8',label:'Sky blue'},
+  cream:{hex:'#FEF08A',label:'Cream'}, maroon:{hex:'#9F1239',label:'Maroon'},
+  navy:{hex:'#1E3A8A',label:'Navy'}, olive:{hex:'#65A30D',label:'Olive'},
+  brown:{hex:'#92400E',label:'Brown'}, grey:{hex:'#6B7280',label:'Grey'},
+  teal:{hex:'#14B8A6',label:'Teal'}
+};
+/* Colour-blind safety: every colour also has a name AND a distinct shape glyph,
+   so no step in the game can be solved by colour alone. */
+var SHAPES = {red:'●', blue:'■', yellow:'▲', white:'○', black:'⬤', purple:'★', green:'◆', orange:'⬢', pink:'♥', sky:'☁', cream:'◐', maroon:'♦', navy:'▬', olive:'♣', brown:'♠', grey:'▓', teal:'✚'};
+function shapeOf(id){ return SHAPES[id] || '●'; }
+function isLightColour(id){ return id==='white' || id==='yellow' || id==='cream'; }
+var MIXES = {
+  'blue+red':'purple','blue+yellow':'green','red+yellow':'orange',
+  'red+white':'pink','blue+white':'sky','white+yellow':'cream',
+  'black+red':'maroon','black+blue':'navy','black+yellow':'olive',
+  'black+white':'grey','blue+green':'teal',
+  'green+red':'brown','blue+orange':'brown','purple+yellow':'brown','green+pink':'brown'
+};
+function mixKey(a,b){ return [a,b].sort().join('+'); }
+function mixColors(a,b){
+  if(!a || !b || a===b || !COLOURS[a] || !COLOURS[b]) return null;
+  return MIXES[mixKey(a,b)] || null;
+}
+function mulberry32(seed){
+  var t = seed >>> 0;
+  return function(){ t += 0x6D2B79F5; var r = Math.imul(t ^ (t>>>15), 1|t); r ^= r + Math.imul(r ^ (r>>>7), 61|r); return ((r ^ (r>>>14))>>>0)/4294967296; };
+}
+function scrambleWord(word, rng){
+  if(!word || word.length < 2) return word;
+  var arr = word.split('');
+  for(var tries=0; tries<30; tries++){
+    var a = arr.slice();
+    for(var i=a.length-1;i>0;i--){ var j=Math.floor(rng()*(i+1)); var tmp=a[i]; a[i]=a[j]; a[j]=tmp; }
+    var s=a.join('');
+    if(s!==word) return s;
+  }
+  return word.slice(1)+word.slice(0,1);
+}
+function sameLetters(a,b){ return a.split('').sort().join('')===b.split('').sort().join(''); }
+var TARGETS = [
+  {id:'green', words:['GREEN','LEAF','GRASS','FROG'], via:['blue','yellow']},
+  {id:'purple',words:['PURPLE','GRAPE','PLUM','VIOLET'], via:['red','blue']},
+  {id:'orange',words:['ORANGE','MANGO','TIGER','SUNSET'], via:['red','yellow']},
+  {id:'pink',  words:['PINK','ROSE','PEACH','CORAL'], via:['red','white']},
+  {id:'sky',   words:['SKY','OCEAN','CLOUD','WATER'], via:['blue','white']},
+  {id:'cream', words:['CREAM','LEMON','BUTTER','SAND'], via:['yellow','white']},
+  {id:'maroon',words:['MAROON','WINE','BERRY','BRICK'], via:['red','black']},
+  {id:'navy',  words:['NAVY','NIGHT','DENIM','OCEAN'], via:['blue','black']},
+  {id:'olive', words:['OLIVE','MOSS','ARMY','FERN'], via:['yellow','black']},
+  {id:'grey',  words:['GREY','STONE','SMOKE','SILVER'], via:['black','white']},
+  {id:'brown', words:['BROWN','BEAR','TREE','COCOA'], via:['green','red']},
+  {id:'teal',  words:['TEAL','JADE','PEACOCK','LAGOON'], via:['blue','green']}
+];
+function levelTimeLimit(level){
+  var t = 60 - Math.floor((level-1)/10)*4;
+  return t < 20 ? 20 : t;
+}
+function wrongMixCost(level){ return level<=5 ? 3 : 5; }
+function generateLevel(level, rng){
+  rng = rng || mulberry32(level*2654435761 + 97);
+  var pool, idx;
+  if(level<=3){ pool = TARGETS.slice(0,3); }
+  else if(level<=10){ pool = TARGETS.slice(0,6); }
+  else if(level<=30){ pool = TARGETS.slice(0,10); }
+  else { pool = TARGETS.slice(); }
+  idx = Math.floor(rng()*pool.length);
+  var target = pool[idx];
+  var word = target.words[Math.floor(rng()*target.words.length)];
+  var palette;
+  if(level<=3){ palette = ['red','blue','yellow']; }
+  else {
+    palette = ['red','blue','yellow','white','black'];
+    target.via.forEach(function(c){ if(palette.indexOf(c)===-1) palette.push(c); });
+  }
+  return {level:level, targetId:target.id, targetHex:COLOURS[target.id].hex,
+    targetLabel:COLOURS[target.id].label, via:target.via.slice(),
+    word:word, scrambled:scrambleWord(word, rng), palette:palette,
+    timeLimit:levelTimeLimit(level)};
+}
+function levelScore(level, timeLeft, streak){
+  var s = 100 + Math.max(0, Math.round(timeLeft))*5 + Math.max(0, streak)*20;
+  return s < 0 ? 0 : s;
+}
+function blitzPoints(combo){ return 10 * Math.max(1, combo); }
+function todayKey(d){ d = d || new Date(); return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0'); }
+function yesterdayKey(d){ d = d || new Date(); var y = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()-1)); return todayKey(y); }
+function nextStreak(lastDate, today, currentStreak){
+  if(!lastDate) return 1;
+  if(lastDate===today) return currentStreak;
+  var a = new Date(lastDate+'T00:00:00Z'), b = new Date(today+'T00:00:00Z');
+  var diff = Math.round((b-a)/86400000);
+  if(diff===1) return currentStreak+1;
+  if(diff>1) return 1;
+  return currentStreak;
+}
+var THEMES = {
+  'default':{label:'Classic', cost:0},
+  'sunset':{label:'Sunset', cost:100},
+  'ocean':{label:'Ocean', cost:200},
+  'forest':{label:'Forest', cost:300}
+};
+var THEME_IDS = ['default','sunset','ocean','forest'];
+var ACHIEVEMENTS = [
+  {id:'first-mix', label:'First Mix'},
+  {id:'streak5', label:'5-Streak'},
+  {id:'levels10', label:'10 Levels'},
+  {id:'blitz20', label:'Blitz 20'},
+  {id:'daily3', label:'Daily 3-Day'}
+];
+var DAILY_REWARDS = [10,20,30,40,50,75,100];
+function dailyReward(day){ day = Math.max(1, Math.min(7, day||1)); return DAILY_REWARDS[day-1]; }
+function nextRewardDay(lastClaimDate, today, claimDay){
+  if(lastClaimDate===today) return claimDay;
+  if(lastClaimDate===yesterdayKey(new Date(today+'T00:00:00Z'))) return Math.min(7, (claimDay||0)+1);
+  return 1;
+}
+function validSaveNum(v){ return typeof v==='number' && isFinite(v) && v>=0 && Math.floor(v)===v; }
+function sanitizeSave(d){
+  d = d || {};
+  var out = {bestScore:0, bestLevel:0, coins:0, dailyStreak:0, lastPlayDate:'', score:0,
+    blitzBest:0, themesOwned:['default'], activeTheme:'default', achievements:{},
+    missions:{date:'', greenMixes:0, done:false}, dailyClaimDay:0, lastRewardDate:'', tutorialSeen:false};
+  if(validSaveNum(d.bestScore)) out.bestScore=d.bestScore;
+  if(validSaveNum(d.bestLevel)) out.bestLevel=d.bestLevel;
+  if(validSaveNum(d.coins)) out.coins=d.coins;
+  if(validSaveNum(d.dailyStreak)) out.dailyStreak=d.dailyStreak;
+  if(validSaveNum(d.blitzBest)) out.blitzBest=d.blitzBest;
+  if(typeof d.lastPlayDate==='string' && /^\d{4}-\d{2}-\d{2}$/.test(d.lastPlayDate)) out.lastPlayDate=d.lastPlayDate;
+  if(typeof d.lastRewardDate==='string' && /^\d{4}-\d{2}-\d{2}$/.test(d.lastRewardDate)) out.lastRewardDate=d.lastRewardDate;
+  if(validSaveNum(d.dailyClaimDay) && d.dailyClaimDay<=7) out.dailyClaimDay=d.dailyClaimDay;
+  if(d.tutorialSeen===true) out.tutorialSeen=true;
+  if(Array.isArray(d.themesOwned)){
+    var owned = d.themesOwned.filter(function(t){ return THEME_IDS.indexOf(t)!==-1; });
+    if(owned.indexOf('default')===-1) owned.unshift('default');
+    out.themesOwned = owned;
+  }
+  if(typeof d.activeTheme==='string' && out.themesOwned.indexOf(d.activeTheme)!==-1) out.activeTheme=d.activeTheme;
+  if(d.achievements && typeof d.achievements==='object'){
+    ACHIEVEMENTS.forEach(function(a){ if(d.achievements[a.id]===true) out.achievements[a.id]=true; });
+  }
+  if(d.missions && typeof d.missions==='object'){
+    if(typeof d.missions.date==='string' && /^\d{4}-\d{2}-\d{2}$/.test(d.missions.date)) out.missions.date=d.missions.date;
+    if(validSaveNum(d.missions.greenMixes)) out.missions.greenMixes=d.missions.greenMixes;
+    if(d.missions.done===true) out.missions.done=true;
+  }
+  return out;
+}
+if(typeof window!=='undefined'){ window.__mixSpellPure = {mixColors:mixColors, scrambleWord:scrambleWord, sameLetters:sameLetters, generateLevel:generateLevel, levelTimeLimit:levelTimeLimit, wrongMixCost:wrongMixCost, levelScore:levelScore, blitzPoints:blitzPoints, todayKey:todayKey, yesterdayKey:yesterdayKey, nextStreak:nextStreak, dailyReward:dailyReward, nextRewardDay:nextRewardDay, sanitizeSave:sanitizeSave, validSaveNum:validSaveNum, COLOURS:COLOURS, MIXES:MIXES, TARGETS:TARGETS, THEMES:THEMES, THEME_IDS:THEME_IDS, ACHIEVEMENTS:ACHIEVEMENTS, SHAPES:SHAPES, shapeOf:shapeOf, isLightColour:isLightColour, mulberry32:mulberry32}; }
+
+/* ============================================================
+   Playables SDK — safe stub when ytgame is absent.
+   Real platform: SDK script defines window.ytgame.
+   Local browser: stub keeps every call working, in memory only.
+   ============================================================ */
+var IN_PLAYABLES = false;
+var PLATFORM_LANG = 'en-US';
+var _memorySave = null;
+function getYtgame(){
+  if(typeof window!=='undefined' && window.ytgame && window.ytgame.game) return window.ytgame;
+  return null;
+}
+function sdk(){
+  var real = getYtgame();
+  if(real){ IN_PLAYABLES = !!(real.IN_PLAYABLES_ENV); return real; }
+  return {
+    IN_PLAYABLES_ENV:false,
+    game:{
+      firstFrameReady:function(){},
+      gameReady:function(){},
+      loadData:function(){ return Promise.resolve(_memorySave || {}); },
+      saveData:function(d){ _memorySave = d; return Promise.resolve(); }
+    },
+    system:{
+      onAudioEnabledChange:function(){},
+      onPause:function(){}, onResume:function(){},
+      getLanguage:function(){ return 'en-US'; }
+    },
+    ads:{
+      requestInterstitialAd:function(){ return Promise.resolve({adShown:false, reason:'stub-no-platform'}); },
+      requestRewardedAd:function(){ return Promise.resolve({adShown:false, reason:'stub-no-platform', rewardGranted:false}); }
+    }
+  };
+}
+function platformLang(){
+  try{ var y=getYtgame(); if(y && y.system && typeof y.system.getLanguage==='function'){ var l=y.system.getLanguage(); if(l) return l; } }catch(e){}
+  return 'en-US';
+}
+
+/* ============================================================
+   Game state + UI (runs only when the DOM is present).
+   ============================================================ */
+if(typeof document!=='undefined' && document.getElementById('app')){
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var state = {
+    screen:'menu', mode:'classic', level:1, score:0, coins:0, lives:3, streak:0,
+    bestScore:0, bestLevel:0, dailyStreak:0, lastPlayDate:'',
+    phase:'mix', current:null, picked:[], typed:'', usedIdx:{},
+    timeLeft:60, timer:null, paused:false, muted:false,
+    lastInterstitial:0, levelsSinceAd:0, dailyMode:false, dailyLeft:0,
+    soundOn:true, audioCtx:null, mixToken:0,
+    blitzBest:0, blitzMixes:0, blitzCombo:0, blitzScore:0, blitzTimeLeft:60, blitzTimer:null, blitzPicked:[], blitzCurrent:null, blitzToken:0,
+    themesOwned:['default'], activeTheme:'default', achievements:{},
+    missions:{date:'', greenMixes:0, done:false}, dailyClaimDay:0, lastRewardDate:'', tutorialSeen:false,
+    tutStep:0, tutTimer:null, tutAfterPlay:false
+  };
+  var saveLoaded = false, savePending = null;
+
+  function beep(freq, dur){
+    if(state.muted || !state.soundOn) return;
+    try{
+      if(!state.audioCtx) state.audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+      var ctx=state.audioCtx, o=ctx.createOscillator(), g=ctx.createGain();
+      o.type='sine'; o.frequency.value=freq||440; g.gain.value=0.08;
+      o.connect(g); g.connect(ctx.destination); o.start();
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+(dur||0.08));
+      o.stop(ctx.currentTime+(dur||0.08));
+    }catch(e){}
+  }
+  function fanfare(){ beep(523,0.09); setTimeout(function(){ beep(659,0.09); },90); setTimeout(function(){ beep(784,0.14); },180); }
+  function show(id){ ['menuScreen','tutorialScreen','playScreen','blitzScreen','blitzOverScreen','pauseScreen','levelScreen','overScreen'].forEach(function(s){ $(s).classList.toggle('hidden', s!==id); }); }
+  function popup(text){
+    var p=document.createElement('div'); p.className='popup'; p.textContent=text;
+    $('popups').appendChild(p);
+    setTimeout(function(){ if(p.parentNode) p.parentNode.removeChild(p); }, 950);
+  }
+  function showBanner(text){
+    var b=$('levelBanner'); b.textContent=text; b.classList.remove('hidden');
+    // restart the CSS animation
+    b.style.animation='none'; void b.offsetWidth; b.style.animation='';
+    setTimeout(function(){ b.classList.add('hidden'); }, 1250);
+  }
+  function burstConfetti(){
+    var c=$('confetti'); if(!c) return;
+    var cols=['#f59e0b','#ec4899','#22c55e','#3b82f6','#eab308','#a855f7'];
+    for(var i=0;i<40;i++){
+      var d=document.createElement('div'); d.className='confetti-bit';
+      d.style.left=(Math.random()*100)+'%'; d.style.background=cols[i%cols.length];
+      d.style.animationDelay=(Math.random()*0.25)+'s';
+      c.appendChild(d);
+      (function(el){ setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 1600); })(d);
+    }
+  }
+  function updateHud(){
+    $('levelPill').textContent = state.mode==='blitz' ? 'Blitz' : 'Level '+state.level + (state.dailyMode?' (Daily)':'');
+    $('scorePill').textContent = 'Score '+(state.mode==='blitz'?state.blitzScore:state.score);
+    var hearts=''; for(var i=0;i<3;i++) hearts += (i<state.lives?'♥':'♡');
+    $('livesPill').textContent = hearts+' Lives '+state.lives;
+    $('streakPill').textContent = (state.streak>=3?'🔥 ':'')+'Streak '+state.streak;
+    $('coinsPill').textContent = 'Coins '+state.coins;
+    $('saveLine').textContent = 'Best score: '+state.bestScore+' \u00b7 Best level: '+state.bestLevel+' \u00b7 Daily streak: '+state.dailyStreak+' day(s)';
+    $('bestLine').textContent = 'Blitz best: '+state.blitzBest+' mixes \u00b7 Theme: '+THEMES[state.activeTheme].label;
+    var total = state.mode==='blitz' ? 60 : (state.current?state.current.timeLimit:60);
+    var left = state.mode==='blitz' ? state.blitzTimeLeft : state.timeLeft;
+    var frac = Math.max(0, Math.min(1, left/total));
+    $('timeBar').style.width = (frac*100)+'%';
+    $('timeBar').style.background = frac>0.5 ? '#22c55e' : (frac>0.25 ? '#f59e0b' : '#ef4444');
+    $('streakPill').classList.toggle('flame', state.streak>=3);
+    var prog = state.mode==='blitz' ? Math.min(100, state.blitzMixes*5) : (state.screen==='play' ? (state.phase==='spell'?50:0) : (state.screen==='level'?100:0));
+    var lb=$('levelBar'); if(lb) lb.style.width = prog+'%';
+    var lt=$('levelProgText'); if(lt) lt.textContent = state.mode==='blitz' ? 'Blitz progress: '+state.blitzMixes+' mixes' : (state.phase==='spell' ? 'Level progress: Mix ✓ → Spell' : 'Level progress: Mix → Spell');
+    $('timerText').textContent = Math.ceil(Math.max(0,left))+'s left';
+    renderAchievements(); renderMissions(); renderThemes(); renderCalendar();
+  }
+  function renderAchievements(){
+    var el=$('achList'); if(!el) return; el.innerHTML='';
+    ACHIEVEMENTS.forEach(function(a){
+      var s=document.createElement('span'); s.className='badge'+(state.achievements[a.id]?' earned':'');
+      s.textContent=(state.achievements[a.id]?'✓ ':'')+a.label; el.appendChild(s);
+    });
+  }
+  function unlockAchievement(id){
+    if(state.achievements[id]) return false;
+    var def=null; ACHIEVEMENTS.forEach(function(a){ if(a.id===id) def=a; });
+    if(!def) return false;
+    state.achievements[id]=true;
+    popup('🏆 '+def.label+' unlocked!');
+    showBanner('🏆 '+def.label+'!');
+    fanfare(); saveProgress(); updateHud();
+    return true;
+  }
+  function renderMissions(){
+    var el=$('missionLine'); if(!el) return;
+    var today=todayKey();
+    if(state.missions.date!==today){ state.missions={date:today, greenMixes:0, done:false}; }
+    el.textContent = 'Mix 5 greens today — '+state.missions.greenMixes+'/5'+(state.missions.done?' ✓ Done (+30 coins)':'');
+  }
+  function trackGreenMix(){
+    var today=todayKey();
+    if(state.missions.date!==today) state.missions={date:today, greenMixes:0, done:false};
+    if(state.missions.done) return;
+    state.missions.greenMixes+=1;
+    if(state.missions.greenMixes>=5){ state.missions.done=true; state.coins+=30; popup('+30 coins — mission done!'); showBanner('🎯 Mission done! +30 coins'); }
+    saveProgress();
+  }
+  function renderThemes(){
+    var row=$('themeRow'); if(!row) return; row.innerHTML='';
+    THEME_IDS.forEach(function(id){
+      var t=THEMES[id];
+      var b=document.createElement('button'); b.type='button';
+      b.className = state.activeTheme===id ? 'theme-btn on' : 'theme-btn';
+      var owned = state.themesOwned.indexOf(id)!==-1;
+      b.textContent = t.label + (owned ? (state.activeTheme===id?' ✓ Active':' ✓ Owned') : ' — '+t.cost+' coins');
+      b.setAttribute('data-theme-id', id);
+      b.addEventListener('click', function(){ selectTheme(id); });
+      row.appendChild(b);
+    });
+  }
+  function applyTheme(){
+    try{
+      if(typeof document==='undefined' || !document.body) return;
+      if(state.activeTheme==='default') document.body.removeAttribute('data-theme');
+      else document.body.setAttribute('data-theme', state.activeTheme);
+    }catch(e){}
+  }
+  function selectTheme(id){
+    if(THEME_IDS.indexOf(id)===-1) return false;
+    if(state.themesOwned.indexOf(id)!==-1){ state.activeTheme=id; applyTheme(); saveProgress(); updateHud(); return true; }
+    var cost=THEMES[id].cost;
+    if(state.coins>=cost){
+      state.coins-=cost; state.themesOwned.push(id); state.activeTheme=id;
+      applyTheme(); popup('🎨 '+THEMES[id].label+' theme unlocked!'); saveProgress(); updateHud(); return true;
+    }
+    popup('Need '+cost+' coins for '+THEMES[id].label+'.');
+    return false;
+  }
+  function renderCalendar(){
+    var cal=$('rewardCal'); if(!cal) return; cal.innerHTML='';
+    var today=todayKey();
+    var nextDay = state.lastRewardDate===today ? state.dailyClaimDay : nextRewardDay(state.lastRewardDate, today, state.dailyClaimDay);
+    for(var d=1; d<=7; d++){
+      var cell=document.createElement('div');
+      cell.textContent='Day '+d+'\n+'+dailyReward(d);
+      if(d<nextDay || (state.lastRewardDate===today && d<=state.dailyClaimDay)) cell.className='done';
+      if(d===nextDay && state.lastRewardDate!==today) cell.className='today';
+      cal.appendChild(cell);
+    }
+    var btn=$('claimBtn');
+    btn.disabled = (state.lastRewardDate===today);
+    btn.textContent = state.lastRewardDate===today ? 'Claimed today ✓' : 'Claim Day '+nextDay+' reward (+'+dailyReward(nextDay)+' coins)';
+  }
+  function claimDaily(){
+    var today=todayKey();
+    if(state.lastRewardDate===today) return false;
+    var day = nextRewardDay(state.lastRewardDate, today, state.dailyClaimDay);
+    state.dailyClaimDay=day; state.lastRewardDate=today;
+    state.coins+=dailyReward(day);
+    state.dailyStreak = nextStreak(state.lastPlayDate, today, state.dailyStreak);
+    state.lastPlayDate=today;
+    if(state.dailyStreak>=3) unlockAchievement('daily3');
+    popup('+'+dailyReward(day)+' coins — Day '+day+' reward!');
+    showBanner('🎁 Day '+day+' reward: +'+dailyReward(day)+' coins');
+    fanfare(); saveProgress(); updateHud();
+    return true;
+  }
+  function saveProgress(){
+    if(!saveLoaded){ savePending=true; return Promise.resolve(); }
+    var data = {bestScore:state.bestScore, bestLevel:state.bestLevel, coins:state.coins, dailyStreak:state.dailyStreak, lastPlayDate:state.lastPlayDate, score:state.score,
+      blitzBest:state.blitzBest, themesOwned:state.themesOwned.slice(), activeTheme:state.activeTheme, achievements:state.achievements,
+      missions:state.missions, dailyClaimDay:state.dailyClaimDay, lastRewardDate:state.lastRewardDate, tutorialSeen:state.tutorialSeen};
+    try{
+      var p = sdk().game.saveData(data);
+      if(p && typeof p.catch==='function') p.catch(function(){});
+      return p;
+    }catch(e){ return Promise.resolve(); }
+  }
+  function loadProgress(){
+    return sdk().game.loadData().then(function(d){
+      var clean = sanitizeSave(d);
+      state.bestScore=clean.bestScore; state.bestLevel=clean.bestLevel; state.coins=clean.coins;
+      state.dailyStreak=clean.dailyStreak; state.lastPlayDate=clean.lastPlayDate;
+      state.blitzBest=clean.blitzBest; state.themesOwned=clean.themesOwned; state.activeTheme=clean.activeTheme;
+      state.achievements=clean.achievements; state.missions=clean.missions;
+      state.dailyClaimDay=clean.dailyClaimDay; state.lastRewardDate=clean.lastRewardDate; state.tutorialSeen=clean.tutorialSeen;
+      applyTheme();
+      saveLoaded=true; updateHud();
+      if(savePending){ savePending=false; saveProgress(); }
+    }).catch(function(){ saveLoaded=true; updateHud(); if(savePending){ savePending=false; saveProgress(); } });
+  }
+  function startTimer(){
+    stopTimer();
+    state.timer = setInterval(function(){
+      if(state.paused || state.screen!=='play') return;
+      state.timeLeft = Math.max(0, state.timeLeft-0.25);
+      updateHud();
+      if(state.timeLeft<=0) loseLife('Time ran out.');
+    }, 250);
+  }
+  function stopTimer(){ if(state.timer){ clearInterval(state.timer); state.timer=null; } }
+  function stopBlitzTimer(){ if(state.blitzTimer){ clearInterval(state.blitzTimer); state.blitzTimer=null; } }
+
+  function startLevel(level){
+    state.mode='classic'; state.level=level; state.phase='mix'; state.picked=[]; state.typed=''; state.usedIdx={};
+    state.mixToken+=1;
+    state.current = generateLevel(level);
+    state.timeLeft = state.current.timeLimit;
+    $('targetSwatch').style.background = state.current.targetHex;
+    $('targetLabel').textContent = 'Target: a '+state.current.targetLabel.toLowerCase()+' colour';
+    $('targetShape').textContent = shapeOf(state.current.targetId)+' '+state.current.targetLabel;
+    $('mixHint').textContent = 'Tap two colours below. Hint: '+state.current.via.length+' colours mix to make it.';
+    $('practiceHint').textContent = level<=3 ? 'Practice: only 3 colours here — try blue + yellow!' : '';
+    $('mixMsg').textContent=''; $('spellMsg').textContent='';
+    $('slotA').textContent='?'; $('slotB').textContent='?'; $('slotResult').textContent='?';
+    $('slotA').style.background=''; $('slotB').style.background=''; $('slotResult').style.background='';
+    $('slotA').style.color=''; $('slotB').style.color=''; $('slotResult').style.color='';
+    $('phaseMix').classList.remove('hidden'); $('phaseSpell').classList.add('hidden');
+    renderPalette(); show('playScreen'); state.screen='play'; state.paused=false;
+    updateHud(); startTimer(); beep(520,0.06);
+  }
+  function renderPalette(){
+    var pal=$('palette'); pal.innerHTML='';
+    state.current.palette.forEach(function(id, idx){
+      var b=document.createElement('button');
+      b.type='button'; b.className='swatch-btn'; b.style.background=COLOURS[id].hex;
+      b.setAttribute('aria-label', COLOURS[id].label);
+      var s=document.createElement('span'); s.textContent=shapeOf(id)+' '+(idx+1)+' '+COLOURS[id].label; if(isLightColour(id)){ s.style.color='#1F2937'; s.style.textShadow='none'; } b.appendChild(s);
+      if(state.picked.indexOf(id)!==-1) b.classList.add('sel');
+      b.addEventListener('click', function(){ pickColour(id); });
+      pal.appendChild(b);
+    });
+  }
+  function pickColour(id){
+    if(state.screen!=='play' || state.phase!=='mix' || state.paused) return;
+    if(state.picked.indexOf(id)!==-1) return;
+    if(state.picked.length>=2) return;
+    beep(440,0.05);
+    state.picked.push(id);
+    if(state.picked.length===1){ $('slotA').textContent=shapeOf(id); $('slotA').style.background=COLOURS[id].hex; $('slotA').style.color=isLightColour(id)?'#1F2937':''; }
+    if(state.picked.length===2){
+      $('slotB').textContent=shapeOf(id); $('slotB').style.background=COLOURS[id].hex; $('slotB').style.color=isLightColour(id)?'#1F2937':'';
+      var res = mixColors(state.picked[0], state.picked[1]);
+      var cost = wrongMixCost(state.level);
+      var tok = state.mixToken;
+      function clearSlots(){
+        if(tok!==state.mixToken) return;
+        $('slotA').textContent='?'; $('slotB').textContent='?'; $('slotResult').textContent='?';
+        $('slotA').style.background=''; $('slotB').style.background=''; $('slotResult').style.background='';
+        $('slotA').style.color=''; $('slotB').style.color=''; $('slotResult').style.color='';
+        renderPalette(); updateHud();
+      }
+      if(res){
+        $('slotResult').textContent=shapeOf(res); $('slotResult').style.background=COLOURS[res].hex; $('slotResult').style.color=isLightColour(res)?'#1F2937':'';
+        $('slotResult').classList.add('pop'); $('slotResult').classList.add('glow-green');
+        setTimeout(function(){ $('slotResult').classList.remove('pop'); $('slotResult').classList.remove('glow-green'); }, 400);
+        if(res===state.current.targetId){
+          $('mixMsg').textContent='Correct! '+COLOURS[res].label+' mixed. Now spell the word.';
+          state.coins+=5; popup('+5 coins'); beep(660,0.09);
+          unlockAchievement('first-mix');
+          if(res==='green') trackGreenMix();
+          setTimeout(function(){ if(tok===state.mixToken && state.phase==='mix' && state.screen==='play') startSpell(); }, 650);
+        }else{
+          $('mixMsg').textContent='That mixes to '+COLOURS[res].label+' — not the target. -'+cost+' seconds.';
+          $('playScreen').classList.add('shake'); $('playScreen').classList.add('wrong-tint');
+          setTimeout(function(){ $('playScreen').classList.remove('shake'); $('playScreen').classList.remove('wrong-tint'); }, 400);
+          state.timeLeft=Math.max(0, state.timeLeft-cost); state.picked=[];
+          setTimeout(clearSlots, 800);
+        }
+      }else{
+        $('mixMsg').textContent='Those two do not mix into a new colour here. Try a different pair. -'+cost+' seconds.';
+        $('playScreen').classList.add('shake'); $('playScreen').classList.add('wrong-tint');
+        setTimeout(function(){ $('playScreen').classList.remove('shake'); $('playScreen').classList.remove('wrong-tint'); }, 400);
+        state.timeLeft=Math.max(0, state.timeLeft-cost); state.picked=[];
+        setTimeout(clearSlots, 800);
+      }
+    }
+    renderPalette(); updateHud();
+  }
+  function startSpell(){
+    state.phase='spell'; state.typed=''; state.usedIdx={};
+    $('phaseMix').classList.add('hidden'); $('phaseSpell').classList.remove('hidden');
+    $('spellHint').textContent='Spell the word for the colour you just mixed.';
+    renderSpell(); updateHud();
+  }
+  function renderSpell(){
+    var slots=$('wordSlots'); slots.innerHTML='';
+    var w=state.current.word;
+    for(var i=0;i<w.length;i++){
+      var d=document.createElement('div'); d.className='slot'; d.textContent = state.typed[i]||''; slots.appendChild(d);
+    }
+    var box=$('letters'); box.innerHTML='';
+    state.current.scrambled.split('').forEach(function(ch, idx){
+      var b=document.createElement('button');
+      b.type='button'; b.className='letter'; b.textContent=ch;
+      b.disabled = !!state.usedIdx[idx];
+      b.addEventListener('click', function(){ typeLetter(idx, ch); });
+      box.appendChild(b);
+    });
+  }
+  function typeLetter(idx, ch){
+    if(state.screen!=='play' || state.phase!=='spell' || state.paused) return;
+    if(state.usedIdx[idx]) return;
+    if(state.typed.length>=state.current.word.length) return;
+    state.usedIdx[idx]=true; state.typed+=ch; beep(500,0.04); renderSpell();
+    if(state.typed.length===state.current.word.length){
+      if(state.typed===state.current.word){ completeLevel(); }
+      else{
+        $('spellMsg').textContent='Not quite — that spells '+state.typed+'. Undo and try again.';
+        state.typed=''; state.usedIdx={}; renderSpell();
+      }
+    }
+  }
+  function completeLevel(){
+    stopTimer();
+    var gained = levelScore(state.level, state.timeLeft, state.streak);
+    state.score+=gained; state.coins+=10; state.streak+=1;
+    if(state.score>state.bestScore) state.bestScore=state.score;
+    if(state.level>state.bestLevel) state.bestLevel=state.level;
+    popup('+'+gained+' points');
+    if(state.streak>=5) unlockAchievement('streak5');
+    if(state.bestLevel>=10) unlockAchievement('levels10');
+    if(state.streak>=3) showBanner('🔥 Streak x'+state.streak+'!');
+    else if(state.level%5===0) showBanner('Level '+state.level+' complete!');
+    burstConfetti(); fanfare();
+    if(state.dailyMode){
+      state.dailyLeft-=1;
+      if(state.dailyLeft<=0){
+        state.coins+=50;
+        $('levelTitle').textContent='Daily Challenge complete! +50 coins';
+        $('levelDetail').textContent='Score '+state.score+' \u00b7 Streak '+state.streak;
+        $('adNote').textContent='';
+        state.dailyMode=false; saveProgress(); show('levelScreen'); state.screen='level'; updateHud(); return;
+      }
+    }
+    $('levelTitle').textContent='Level '+state.level+' complete! +'+gained+' points';
+    $('levelDetail').textContent='Score '+state.score+' \u00b7 Coins '+state.coins+' \u00b7 Streak '+state.streak;
+    state.levelsSinceAd+=1;
+    var now=Date.now();
+    if(state.levelsSinceAd>=3 && now-state.lastInterstitial>=90000){
+      state.levelsSinceAd=0; state.lastInterstitial=now;
+      $('adNote').textContent='An interstitial ad break may play here on YouTube Playables (between levels only).';
+      try{ var r=sdk().ads.requestInterstitialAd(); if(r && typeof r.catch==='function') r.catch(function(){}); }catch(e){}
+    }else{ $('adNote').textContent=''; }
+    saveProgress(); show('levelScreen'); state.screen='level'; updateHud();
+  }
+  function loseLife(msg){
+    stopTimer();
+    state.lives-=1; state.streak=0; beep(220,0.15); updateHud();
+    if(state.lives>0){
+      $('mixMsg').textContent=''; alert2(msg+' You lost a life. '+state.lives+' left — same level again.');
+      startLevel(state.level);
+    }else{
+      $('overDetail').textContent=msg+' Final score '+state.score+' \u00b7 Reached level '+state.level+' \u00b7 Best score '+state.bestScore+'.';
+      saveProgress(); show('overScreen'); state.screen='over'; updateHud();
+    }
+  }
+  function alert2(text){
+    $('mixMsg').textContent=text; $('spellMsg').textContent=text;
+  }
+  function pauseGame(){
+    if(state.screen!=='play' && state.screen!=='blitz') return;
+    state.paused=true; show('pauseScreen'); state.screen='pause'; updateHud();
+  }
+  function resumeGame(){
+    state.paused=false;
+    if(state.mode==='blitz'){ show('blitzScreen'); state.screen='blitz'; }
+    else { show('playScreen'); state.screen='play'; }
+    updateHud();
+  }
+  function newRun(daily){
+    stopBlitzTimer();
+    state.mode='classic'; state.score=0; state.lives=3; state.streak=0; state.levelsSinceAd=0;
+    state.dailyMode=!!daily; state.dailyLeft=daily?3:0;
+    var today=todayKey();
+    state.dailyStreak = nextStreak(state.lastPlayDate, today, state.dailyStreak);
+    state.lastPlayDate=today;
+    if(state.dailyStreak>=3) unlockAchievement('daily3');
+    saveProgress();
+    startLevel(1);
+  }
+
+  /* ---- Blitz mode ---- */
+  function blitzTarget(){
+    var rng = mulberry32(Date.now() ^ (state.blitzMixes*7919+13));
+    var pool = TARGETS.slice(0,6);
+    var t = pool[Math.floor(rng()*pool.length)];
+    state.blitzCurrent = {targetId:t.id, targetHex:COLOURS[t.id].hex, targetLabel:COLOURS[t.id].label, via:t.via.slice()};
+    var palette = ['red','blue','yellow','white','black'];
+    t.via.forEach(function(c){ if(palette.indexOf(c)===-1) palette.push(c); });
+    state.blitzCurrent.palette = palette;
+    state.blitzPicked=[];
+    $('blitzTargetSwatch').style.background=t.hex || COLOURS[t.id].hex;
+    $('blitzTargetLabel').textContent='Target: a '+COLOURS[t.id].label.toLowerCase()+' colour';
+    $('blitzTargetShape').textContent=shapeOf(t.id)+' '+COLOURS[t.id].label;
+    $('blitzSlotA').textContent='?'; $('blitzSlotB').textContent='?'; $('blitzSlotResult').textContent='?';
+    $('blitzSlotA').style.background=''; $('blitzSlotB').style.background=''; $('blitzSlotResult').style.background='';
+    $('blitzSlotA').style.color=''; $('blitzSlotB').style.color=''; $('blitzSlotResult').style.color='';
+    renderBlitzPalette();
+  }
+  function renderBlitzPalette(){
+    var pal=$('blitzPalette'); pal.innerHTML='';
+    state.blitzCurrent.palette.forEach(function(id, idx){
+      var b=document.createElement('button');
+      b.type='button'; b.className='swatch-btn'; b.style.background=COLOURS[id].hex;
+      b.setAttribute('aria-label', COLOURS[id].label);
+      var s=document.createElement('span'); s.textContent=shapeOf(id)+' '+(idx+1)+' '+COLOURS[id].label; if(isLightColour(id)){ s.style.color='#1F2937'; s.style.textShadow='none'; } b.appendChild(s);
+      if(state.blitzPicked.indexOf(id)!==-1) b.classList.add('sel');
+      b.addEventListener('click', function(){ blitzPick(id); });
+      pal.appendChild(b);
+    });
+  }
+  function updateBlitzHud(){
+    $('blitzScore').textContent='Mixes '+state.blitzMixes+' \u00b7 Combo x'+Math.max(1,state.blitzCombo)+' \u00b7 Score '+state.blitzScore;
+    updateHud();
+  }
+  function startBlitz(){
+    stopTimer(); stopBlitzTimer();
+    state.mode='blitz'; state.blitzMixes=0; state.blitzCombo=0; state.blitzScore=0; state.blitzTimeLeft=60; state.blitzToken+=1;
+    blitzTarget();
+    show('blitzScreen'); state.screen='blitz'; state.paused=false;
+    updateBlitzHud();
+    state.blitzTimer = setInterval(function(){
+      if(state.paused || state.screen!=='blitz') return;
+      state.blitzTimeLeft = Math.max(0, state.blitzTimeLeft-0.25);
+      updateBlitzHud();
+      if(state.blitzTimeLeft<=0) endBlitz();
+    }, 250);
+    beep(520,0.06);
+  }
+  function blitzPick(id){
+    if(state.screen!=='blitz' || state.paused) return;
+    if(state.blitzPicked.indexOf(id)!==-1) return;
+    if(state.blitzPicked.length>=2) return;
+    beep(440,0.05);
+    state.blitzPicked.push(id);
+    if(state.blitzPicked.length===1){ $('blitzSlotA').textContent=shapeOf(id); $('blitzSlotA').style.background=COLOURS[id].hex; $('blitzSlotA').style.color=isLightColour(id)?'#1F2937':''; }
+    if(state.blitzPicked.length===2){
+      $('blitzSlotB').textContent=shapeOf(id); $('blitzSlotB').style.background=COLOURS[id].hex; $('blitzSlotB').style.color=isLightColour(id)?'#1F2937':'';
+      var res = mixColors(state.blitzPicked[0], state.blitzPicked[1]);
+      var tok = state.blitzToken;
+      if(res && res===state.blitzCurrent.targetId){
+        $('blitzSlotResult').textContent=shapeOf(res); $('blitzSlotResult').style.background=COLOURS[res].hex; $('blitzSlotResult').style.color=isLightColour(res)?'#1F2937':'';
+        $('blitzSlotResult').classList.add('pop'); $('blitzSlotResult').classList.add('glow-green');
+        setTimeout(function(){ $('blitzSlotResult').classList.remove('pop'); $('blitzSlotResult').classList.remove('glow-green'); }, 400);
+        state.blitzMixes+=1; state.blitzCombo+=1;
+        var pts = blitzPoints(state.blitzCombo);
+        state.blitzScore+=pts; state.coins+=1;
+        popup('+'+pts+(state.blitzCombo>=2?' COMBO x'+state.blitzCombo:''));
+        beep(660,0.07);
+        if(res==='green') trackGreenMix();
+        if(state.blitzMixes>=20) unlockAchievement('blitz20');
+        setTimeout(function(){ if(tok===state.blitzToken && state.screen==='blitz') blitzTarget(); }, 450);
+      }else{
+        state.blitzCombo=0;
+        $('blitzScreen').classList.add('shake'); $('blitzScreen').classList.add('wrong-tint');
+        setTimeout(function(){ $('blitzScreen').classList.remove('shake'); $('blitzScreen').classList.remove('wrong-tint'); }, 400);
+        $('blitzMsg').textContent = res ? 'That mixes to '+COLOURS[res].label+' — not the target. Combo reset.' : 'Those two do not mix. Combo reset.';
+        setTimeout(function(){ if(tok===state.blitzToken && state.screen==='blitz'){ state.blitzPicked=[]; blitzTarget(); updateBlitzHud(); } }, 650);
+      }
+      updateBlitzHud();
+    }
+    renderBlitzPalette();
+  }
+  function endBlitz(){
+    stopBlitzTimer();
+    var isBest = state.blitzMixes>state.blitzBest;
+    if(isBest) state.blitzBest=state.blitzMixes;
+    if(state.blitzMixes>=20) unlockAchievement('blitz20');
+    $('blitzOverDetail').textContent='You mixed '+state.blitzMixes+' colours in 60 seconds \u00b7 Score '+state.blitzScore+(isBest?' \u00b7 NEW BEST!':' \u00b7 Best: '+state.blitzBest+' mixes')+' \u00b7 Coins '+state.coins+'.';
+    if(isBest){ showBanner('⚡ New Blitz best: '+state.blitzMixes+'!'); burstConfetti(); fanfare(); }
+    saveProgress(); show('blitzOverScreen'); state.screen='blitzover'; updateHud();
+  }
+
+  /* ---- Tutorial (3 steps, auto-advance, under 20 seconds) ---- */
+  var TUT_STEPS = [
+    {title:'Step 1 — Mix', emoji:'🎨', text:'Tap two colours to mix the target colour. Blue + yellow = green!'},
+    {title:'Step 2 — Spell', emoji:'🔤', text:'Tap the scrambled letters in order to spell the English word.'},
+    {title:'Step 3 — Score', emoji:'⭐', text:'Beat the timer, build a streak, earn coins. 3 lives — good luck!'}
+  ];
+  function showTutorial(afterPlay){
+    state.tutAfterPlay=!!afterPlay; state.tutStep=0;
+    show('tutorialScreen'); state.screen='tutorial'; renderTutStep();
+    clearTutTimer();
+    state.tutTimer=setInterval(function(){ advanceTutorial(); }, 6000);
+  }
+  function clearTutTimer(){ if(state.tutTimer){ clearInterval(state.tutTimer); state.tutTimer=null; } }
+  function renderTutStep(){
+    var s=TUT_STEPS[state.tutStep];
+    $('tutTitle').textContent=s.title; $('tutEmoji').textContent=s.emoji; $('tutText').textContent=s.text;
+    $('tutDots').textContent = TUT_STEPS.map(function(_,i){ return i===state.tutStep?'●':'○'; }).join('');
+    $('tutNextBtn').textContent = state.tutStep===TUT_STEPS.length-1 ? "Let's play!" : 'Next';
+  }
+  function advanceTutorial(){
+    if(state.tutStep < TUT_STEPS.length-1){ state.tutStep+=1; renderTutStep(); }
+    else finishTutorial();
+  }
+  function finishTutorial(){
+    clearTutTimer();
+    state.tutorialSeen=true; saveProgress();
+    if(state.tutAfterPlay) newRun(false);
+    else { show('menuScreen'); state.screen='menu'; updateHud(); }
+  }
+
+  // Buttons
+  $('playBtn').addEventListener('click', function(){
+    if(!state.tutorialSeen) showTutorial(true);
+    else newRun(false);
+  });
+  $('blitzBtn').addEventListener('click', function(){ startBlitz(); });
+  $('dailyBtn').addEventListener('click', function(){ newRun(true); });
+  $('tutorialBtn').addEventListener('click', function(){ showTutorial(false); });
+  $('tutNextBtn').addEventListener('click', function(){ clearTutTimer(); advanceTutorial(); if(state.screen==='tutorial'){ state.tutTimer=setInterval(function(){ advanceTutorial(); }, 6000); } });
+  $('tutSkipBtn').addEventListener('click', function(){ finishTutorial(); });
+  $('claimBtn').addEventListener('click', function(){ claimDaily(); });
+  $('soundBtn').addEventListener('click', function(){
+    state.soundOn=!state.soundOn;
+    $('soundBtn').textContent='Sound: '+(state.soundOn?'On':'Off');
+    $('soundBtn').setAttribute('aria-pressed', String(state.soundOn));
+    if(state.soundOn) beep(520,0.06);
+  });
+  $('clearMixBtn').addEventListener('click', function(){ state.picked=[]; $('slotA').textContent='?'; $('slotB').textContent='?'; $('slotA').style.background=''; $('slotB').style.background=''; renderPalette(); });
+  $('pauseBtn').addEventListener('click', pauseGame);
+  $('pauseBtn2').addEventListener('click', pauseGame);
+  $('blitzPauseBtn').addEventListener('click', pauseGame);
+  $('resumeBtn').addEventListener('click', resumeGame);
+  $('menuBtn').addEventListener('click', function(){ stopTimer(); stopBlitzTimer(); state.mode='classic'; state.screen='menu'; show('menuScreen'); updateHud(); });
+  $('overMenuBtn').addEventListener('click', function(){ state.screen='menu'; show('menuScreen'); updateHud(); });
+  $('blitzMenuBtn').addEventListener('click', function(){ stopBlitzTimer(); state.mode='classic'; state.screen='menu'; show('menuScreen'); updateHud(); });
+  $('blitzOverMenuBtn').addEventListener('click', function(){ state.mode='classic'; state.screen='menu'; show('menuScreen'); updateHud(); });
+  $('blitzAgainBtn').addEventListener('click', function(){ startBlitz(); });
+  $('nextBtn').addEventListener('click', function(){ startLevel(state.level+1); });
+  $('againBtn').addEventListener('click', function(){ newRun(false); });
+  $('continueBtn').addEventListener('click', function(){
+    function grant(){ state.lives=1; $('overDetail').textContent='Continued with +1 life.'; startLevel(state.level); }
+    function decline(){ $('overDetail').textContent='The ad did not play — no life given. Tap Continue to try again, or Play again to restart.'; }
+    try{
+      var p=sdk().ads.requestRewardedAd('continue-life');
+      Promise.resolve(p).then(function(r){
+        r=r||{};
+        if(r.reason==='stub-no-platform' || r.adShown || r.rewardGranted) grant();
+        else decline();
+      }).catch(function(){ decline(); });
+    }catch(e){ decline(); }
+  });
+  $('hintBtn').addEventListener('click', function(){
+    if(state.phase!=='spell') return;
+    var w=state.current.word, next=state.typed.length;
+    if(next>=w.length) return;
+    if(state.coins>=10){
+      state.coins-=10;
+      var ch=w[next], found=-1;
+      state.current.scrambled.split('').forEach(function(c,i){ if(found===-1 && c===ch && !state.usedIdx[i]) found=i; });
+      if(found!==-1){ state.usedIdx[found]=true; state.typed+=ch; }
+      $('spellMsg').textContent='Hint used: next letter is '+ch+'.';
+      beep(600,0.06); renderSpell(); updateHud();
+      if(state.typed===w) completeLevel();
+    }else{
+      $('spellMsg').textContent='Not enough coins (need 10). Use Continue on game over for a rewarded ad, or finish a level to earn coins.';
+    }
+  });
+  $('shuffleBtn').addEventListener('click', function(){
+    if(state.phase!=='spell' || state.paused) return;
+    var unused = [];
+    state.current.scrambled.split('').forEach(function(c,i){ if(!state.usedIdx[i]) unused.push(c); });
+    if(unused.length<2) return;
+    var shuffled = scrambleWord(unused.join(''), mulberry32(Date.now()^state.level));
+    if(shuffled===unused.join('') && unused.length>=2){ shuffled = unused.slice(1).join('')+unused[0]; }
+    var k=0;
+    var chars = state.current.scrambled.split('');
+    for(var i=0;i<chars.length;i++){ if(!state.usedIdx[i]){ chars[i]=shuffled[k]; k+=1; } }
+    state.current.scrambled = chars.join('');
+    $('spellMsg').textContent='Letters shuffled.';
+    beep(500,0.04); renderSpell();
+  });
+  $('undoBtn').addEventListener('click', function(){
+    if(state.phase!=='spell' || !state.typed) return;
+    var last=state.typed[state.typed.length-1], idx=-1;
+    state.current.scrambled.split('').forEach(function(c,i){ if(c===last && state.usedIdx[i]) idx=i; });
+    if(idx!==-1) delete state.usedIdx[idx];
+    state.typed=state.typed.slice(0,-1); renderSpell();
+  });
+
+  // Keyboard: 1-5 palette, letters for spelling, Backspace undo, Esc pause.
+  document.addEventListener('keydown', function(e){
+    if(state.screen==='tutorial'){ if(e.key==='Escape') finishTutorial(); return; }
+    if(state.screen!=='play' && state.screen!=='blitz'){ if(e.key==='Escape' && state.screen==='pause') resumeGame(); return; }
+    if(state.paused) { if(e.key==='Escape') resumeGame(); return; }
+    if(state.screen==='blitz'){
+      var n=parseInt(e.key,10);
+      if(n>=1 && n<=state.blitzCurrent.palette.length) blitzPick(state.blitzCurrent.palette[n-1]);
+      if(e.key==='Escape') pauseGame();
+      return;
+    }
+    if(state.phase==='mix'){
+      var m=parseInt(e.key,10);
+      if(m>=1 && m<=state.current.palette.length) pickColour(state.current.palette[m-1]);
+    }else if(state.phase==='spell'){
+      if(e.key==='Backspace'){ e.preventDefault(); $('undoBtn').click(); }
+      else if(/^[a-zA-Z]$/.test(e.key)){
+        var ch=e.key.toUpperCase(), found=-1;
+        state.current.scrambled.split('').forEach(function(c,i){ if(found===-1 && c===ch && !state.usedIdx[i]) found=i; });
+        if(found!==-1) typeLetter(found, ch);
+      }
+    }
+    if(e.key==='Escape') pauseGame();
+  });
+  document.addEventListener('visibilitychange', function(){ if(document.hidden && (state.screen==='play' || state.screen==='blitz')) pauseGame(); });
+
+  // Platform hooks — registered once, guarded so a missing API never breaks the game.
+  try{
+    var y=sdk();
+    if(y && y.system){
+      if(typeof y.system.onAudioEnabledChange==='function') y.system.onAudioEnabledChange(function(on){ state.muted=!on; });
+      if(typeof y.system.onPause==='function') y.system.onPause(function(){ if(state.screen==='play' || state.screen==='blitz') pauseGame(); });
+      if(typeof y.system.onResume==='function') y.system.onResume(function(){ if(state.screen==='pause') resumeGame(); });
+    }
+  }catch(e){}
+  PLATFORM_LANG = platformLang();
+
+  // Boot: firstFrameReady now (loading screen is visible), load save, then gameReady.
+  try{ sdk().game.firstFrameReady(); }catch(e){}
+  show('menuScreen'); updateHud();
+  loadProgress().then(function(){ try{ sdk().game.gameReady(); }catch(e){} });
+})();
+}
+</script>
+</body>
+</html>
